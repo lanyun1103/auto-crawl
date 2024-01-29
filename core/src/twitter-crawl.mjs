@@ -1,6 +1,8 @@
 import puppeteer from 'puppeteer';
 // import * as fs from "fs";
 import { promises as fs } from 'fs';
+import axios from "axios";
+import path, {join} from "path";
 
 async function readAndSetCookies(page) {
     try {
@@ -50,12 +52,12 @@ async function readAndSetCookies(page) {
     while (times !== 0) {
         const articles = await page.$$('article');
         current_article_cnt = articles.length;
-        console.log('enter')
         if (current_article_cnt !== last_article_cnt) {
             for (const article of articles) {
                 // 在evaluate()中提取<article>元素的信息
-                const spans = await article.$$('span');
+                const spans = await article.$$('.css-1qaijid');
                 const images = await article.$$('img');
+                // console.log(spans)
                 // console.log(spans.length)
                 for (const span of spans) {
                     // 在evaluate()中提取<span>元素的文本内容
@@ -66,7 +68,7 @@ async function readAndSetCookies(page) {
 
                     if (chineseMatches && chineseMatches.length > 10) {
                         // 输出符合条件的内容
-                        // console.log('文章中的<span>元素文本:', spanText);
+                        console.log('文章中的<span>元素文本:', spanText);
                         uniqueSpans.add(spanText.replaceAll('\n', ''));
                     }
                 }
@@ -79,15 +81,50 @@ async function readAndSetCookies(page) {
                     const mediaPattern = /media/g; // 匹配 "media" 的正则表达式
                     const mediaMatches = imageSrc.match(mediaPattern);
                     if (mediaMatches && mediaMatches.length > 0) { // 只要包含 "media" 就输出
-                        // console.log('文章中的<span>图片文本:', imageSrc);
+                        console.log('文章中的<span>图片文本:', imageSrc);
                         uniqueImages.add(imageSrc);
+                        const imageName = path.basename(imageSrc).replaceAll('/', ''); // 提取图片文件名
+                        // console.log(imageName)
+                        axios
+                            .get(imageSrc, { responseType: 'stream' })
+                            .then((response) => {
+                                // 创建一个可写流，将图像数据保存到内存中
+                                const imageData = [];
+                                response.data.on('data', (chunk) => {
+                                    imageData.push(chunk);
+                                });
+                                return new Promise((resolve, reject) => {
+                                    response.data.on('end', () => {
+                                        resolve(Buffer.concat(imageData));
+                                    });
+                                    response.data.on('error', reject);
+                                });
+                            })
+                            .then((imageBuffer) => {
+                                // 创建一个可写流，将图像数据保存到文件
+                                let imagePath = join('storage/', imageName);
+                                imagePath += '.jpg'
+                                return fs.writeFile(imagePath, imageBuffer);
+                            })
+                            .then(() => {
+                                console.log(`已成功下载图片到 ${imageSrc}`);
+                            })
+                            .catch((error) => {
+                                console.error('下载图片时出错：', error);
+                            });
                     }
                 }
             }
         }
-        await page.evaluate(() => {
-            window.scrollBy(0, 500); // 向下滚动500个像素，可以根据需要调整滚动距离
-        });
+
+        //模拟用户鼠标滚动
+        for (let i = 0; i < 5; i++) {
+            setTimeout(async () => {
+                await page.evaluate(() => {
+                    window.scrollBy(0, 200); // 向下滚动200个像素，可以根据需要调整滚动距离
+                });
+            }, 400); // 400毫秒后执行
+        }
         // 等待一段时间，以观察页面滚动效果
         await page.waitForTimeout(3000); // 等待5秒
         last_article_cnt = articles.length;
