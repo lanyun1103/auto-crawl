@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer';
-import * as fs from "fs";
+// import * as fs from "fs";
+import { promises as fs } from 'fs';
 
 async function readAndSetCookies(page) {
     try {
@@ -7,22 +8,22 @@ async function readAndSetCookies(page) {
         let cookiesData = {};
 
         // Read the file and wait for it to complete
-        fs.readFile(filePath, (err, data) => {
-            if (err) throw err;
-            console.log(data);
-            cookiesData = JSON.parse(data);
-            let cookies = [
-                {
-                    name: cookiesData.name,
-                    value: cookiesData.value,
-                    domain: '.twitter.com',
-                    path: '/',
-                    expires: Math.floor(Date.now() / 1000) + 3600, // Set cookie expiry to one hour later
-                }
-            ];
-            console.log('Cookies:', cookies);
-            page.setCookie(...cookies);
-        });
+        const data = await fs.readFile(filePath);
+        await fs.readFile(filePath);
+        console.log('File read result:', data);
+        cookiesData = JSON.parse(data);
+        let cookies = [
+            {
+                name: cookiesData.name,
+                value: cookiesData.value,
+                domain: '.twitter.com',
+                path: '/',
+                expires: Math.floor(Date.now() / 1000) + 3600, // Set cookie expiry to one hour later
+            }
+        ];
+        console.log('Cookies:', cookies);
+        await page.setCookie(...cookies);
+        console.log('Cookie complete.')
 
     } catch (error) {
         console.error('Error occurred:', error);
@@ -66,7 +67,7 @@ async function readAndSetCookies(page) {
                     if (chineseMatches && chineseMatches.length > 10) {
                         // 输出符合条件的内容
                         // console.log('文章中的<span>元素文本:', spanText);
-                        uniqueSpans.add(spanText);
+                        uniqueSpans.add(spanText.replaceAll('\n', ''));
                     }
                 }
                 for (const image of images) {
@@ -78,7 +79,7 @@ async function readAndSetCookies(page) {
                     const mediaPattern = /media/g; // 匹配 "media" 的正则表达式
                     const mediaMatches = imageSrc.match(mediaPattern);
                     if (mediaMatches && mediaMatches.length > 0) { // 只要包含 "media" 就输出
-                        console.log('文章中的<span>图片文本:', imageSrc);
+                        // console.log('文章中的<span>图片文本:', imageSrc);
                         uniqueImages.add(imageSrc);
                     }
                 }
@@ -88,11 +89,15 @@ async function readAndSetCookies(page) {
             window.scrollBy(0, 500); // 向下滚动500个像素，可以根据需要调整滚动距离
         });
         // 等待一段时间，以观察页面滚动效果
-        await page.waitForTimeout(5000); // 等待5秒
+        await page.waitForTimeout(3000); // 等待5秒
         last_article_cnt = articles.length;
         times--;
     }
     console.log(uniqueSpans)
+    console.log(uniqueImages)
+    // 保存到本地文件
+    await fs.writeFile('./storage/spans.txt', Array.from(uniqueSpans).join('\n'));
+    await fs.writeFile('./storage/images.txt', Array.from(uniqueImages).join('\n'));
     setTimeout(async function () {
         await browser.close();
         console.log('10秒后执行的代码');
