@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es6",          /* 指定 ECMAScript 目标版本 */
+    "module": "commonjs",     /* 指定生成哪个模块系统代码 */
+    "outDir": "./dist",       /* 将输出文件重定向到目录 */
+    "strict": true,           /* 启用所有严格类型检查选项 */
+    "esModuleInterop": true   /* 为了支持 CommonJS 和 ES 模块之间的互操作性 */
+  },
+  "paths": {
+    "@/*": [
+      "core/src/*"
+    ]
+  },
+  "include": ["core/src/*"],    /* 需要编译的文件或目录 */
+  "exclude": ["node_modules"] /* 排除不需要编译的文件或目录 */
+}

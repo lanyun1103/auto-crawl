@@ -1,5 +1,4 @@
 import puppeteer from 'puppeteer';
-// import * as fs from "fs";
 import { promises as fs } from 'fs';
 import axios from "axios";
 import path, {join} from "path";

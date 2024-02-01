@@ -4,16 +4,21 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node core/src/twitter-crawl.mjs"
+    "start:auth": "npx tsc & node dist/rettiwt-auth.js",
+    "start:crawl": "npx tsc & node dist/rettiwt-crawl.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "axios": "^1.6.7",
-    "puppeteer": "^21.9.0"
+    "js-yaml": "^4.1.0",
+    "puppeteer": "^21.9.0",
+    "rettiwt-api": "^2.5.0"
   },
   "devDependencies": {
-    "@types/node": "^20.11.9"
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.11.9",
+    "typescript": "^5.3.3"
   }
 }
