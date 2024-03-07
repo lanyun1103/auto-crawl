@@ -1,7 +1,7 @@
 {
-  "name": "auto-crawl",
+  "name": "my-webpack-project",
   "version": "1.0.0",
-  "description": "",
+  "description": "My webpack project",
   "main": "index.js",
   "scripts": {
     "start:auth": "npx tsc & node dist/rettiwt-auth.js",
